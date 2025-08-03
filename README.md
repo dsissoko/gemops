@@ -15,7 +15,7 @@
 Consultez en une commande l’état de vos conteneurs Docker Compose (dans le répertoire courant), d’une liste précise, ou de tous les conteneurs actifs.
 
 ```shell
-$ status_compose --help
+r3edge@devbox:~/compose$ status_compose --help
 Usage: status_compose [--list all|svc1,svc2,...] [--help]
 
 Ce script affiche :
@@ -42,7 +42,7 @@ Comportement par défaut :
 **Exemple de sortie :**
 
 ```shell
-r3edge@r3edge-vps:/opt/r3edge/deploy-socle/2-redpanda/docker-compose$ status_compose
+r3edge@devbox:~/compose$ status_compose
 
 📦 Conteneurs actifs :
 NAMES                            STATUS                 PORTS
