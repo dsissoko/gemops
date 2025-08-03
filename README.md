@@ -14,6 +14,27 @@
 **Usage :**  
 Consultez en une commande l’état de vos conteneurs Docker Compose (dans le répertoire courant), d’une liste précise, ou de tous les conteneurs actifs.
 
+```shell
+$ status_compose --help
+Usage: status_compose [--list all|svc1,svc2,...] [--help]
+
+Ce script affiche :
+  - Le statut des conteneurs actifs
+  - Leur état de santé (healthcheck)
+  - L'utilisation mémoire
+  - Les derniers logs
+
+Options :
+  --list all           Affiche les informations pour tous les conteneurs Docker
+  --list svc1,svc2     Liste personnalisée de services à surveiller
+  --help, -h           Affiche cette aide
+
+Comportement par défaut :
+  - Si un fichier docker-compose.yml est présent dans le répertoire courant
+    **et qu'une stack Compose y est active**, les services détectés sont utilisés automatiquement.
+  - Sinon, l'option --list est requise.
+```
+
 **Prérequis :**
 - [Docker](https://docs.docker.com/get-docker/) (avec le plugin `docker compose`)
 - Utilitaires système : `free` (`procps`) et `awk` (installés par défaut sur 99% des distributions Linux)
@@ -76,3 +97,8 @@ WARN  2025-08-03 17:30:01,650 [shard 0:main] cluster - feature_manager.cc:318 - 
 git clone https://github.com/<ton_user>/devops_gem
 cd devops_gem
 chmod +x scripts/**/*.sh
+```
+
+---
+
+📫 Maintenu par [@dsissoko](https://github.com/dsissoko) – suggestions et étoiles appréciées !
