@@ -3,6 +3,8 @@
 [`status_compose.sh`](./scripts/status_compose.sh)  
 Affiche rapidement l’état des containers lancés via Docker Compose.
 
+---
+
 **Usage :**  
 Consultez en une commande l’état de vos conteneurs Docker Compose (dans le répertoire courant), d’une liste précise, ou de tous les conteneurs actifs.
 
