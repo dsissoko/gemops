@@ -2,7 +2,7 @@
 
 > *life is a bitch but devops_gem may help*
 
-💎 Scripts Bash pour la vie quotidienne des devops : gestion des containers, monitoring, outils divers.
+💎 Scripts, templates, outils pour la vie quotidienne des devops:
 
 ## 🚀 Gems disponibles
 
@@ -11,7 +11,7 @@
 - [`dir_template`](./DIR_TEMPLATE.md)
   Template de répertoire pour les OPS durable dans le temps.
 
-*D’autres scripts arriveront au fil de l’eau…*
+*D’autres gems à venir…*
 
 ## 📦 Installation
 
