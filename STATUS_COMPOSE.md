@@ -1,4 +1,4 @@
-### status_compose
+**status_compose**
 
 [`status_compose.sh`](./scripts/status_compose.sh)  
 Affiche rapidement l’état des containers lancés via Docker Compose.
