@@ -1,4 +1,4 @@
-# devops_gem
+# gemops
 
 > *life is a bitch but devops_gem may help*
 
