@@ -13,7 +13,7 @@ Il sépare les scripts spécifiques aux composants et les opérations globales, 
 - L'organisation est volontairement agnostique vis-à-vis des outils : que ce soit `Pulumi`, `cloud-init`, `docker-compose`, `kubectl`, `skaffold`, `portainer` ou autres, l'arborescence reste stable.  
 - Les fichiers `.env` sont gérés par environnement (`.env.dev`, `.env.prod`) et peuvent être chiffrés (`.env.crypt`) si nécessaire.  
 
-Arborescence type :  
+**Arborescence type :**  
 
 ```
 dir_template/
