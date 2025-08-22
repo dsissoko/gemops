@@ -60,69 +60,25 @@ Arborescence type :
 ```
 
 ```gitignore
-# === Node / JS ===
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# === Python ===
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.pdb
-*.egg-info/
-.eggs/
-
-# === IDE / Editor ===
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# === System files ===
-.DS_Store
-Thumbs.db
-
-# === Logs ===
-*.log
-logs/
-*.out
-
-# === Docker ===
-**/docker-compose.override.yml
-**/compose.override.yml
-.docker/
-docker-data/
-
 # === Secrets ===
-# On ignore les .env normaux
 *.env
 .env
 **/.env
-
-# On garde les versions chiffrées
 !*.env.crypt
 
-# === Backups / Dumps ===
+# === Logs & backups ===
+*.log
 *.bak
 *.sql
 *.dump
 *.tar
 *.gz
 
-# === Build outputs ===
-dist/
-build/
-target/
-coverage/
-htmlcov/
-
-# === Local bin utils ===
-localbin/*.tmp
-localbin/*.bak
+# === Python virtualenv ===
+venv/
+.envrc
+__pycache__/
+*.pyc
 ```
 
 ---
