@@ -4,7 +4,7 @@
 
 💎 Scripts Bash pour la vie quotidienne des devops : gestion des containers, monitoring, outils divers.
 
-## 🚀 Scripts inclus
+## 🚀 Gems disponibles
 
 - [`status_compose.sh`](./STATUS_COMPOSE.md)
   Affiche rapidement l’état des containers lancés via Docker Compose.
