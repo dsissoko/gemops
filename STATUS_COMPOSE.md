@@ -80,6 +80,3 @@ WARN  2025-08-03 17:30:01,650 [shard 0:main] cluster - feature_manager.cc:318 - 
 {"level":"info","ts":"2025-08-01T18:33:14.881Z","msg":"successfully pulled git repository","repository_url":"https://github.com/redpanda-data/docs","read_files":1}
 ...
 ```
-
-
-📫 Maintenu par [@dsissoko](https://github.com/dsissoko) – suggestions et étoiles appréciées !
