@@ -1,13 +1,13 @@
-# gemops
+# gemops 💎
 
 > *life is a bitch but devops_gem may help*
 
-💎 Scripts, templates, outils pour la vie quotidienne des devops:
+Scripts, templates, outils pour la vie quotidienne des devops:
 
 ## 🚀 Gems disponibles
 
-- [`status_compose.sh`](./STATUS_COMPOSE.md): Affiche rapidement l’état des containers lancés via Docker Compose.
-- [`dir_template`](./DIR_TEMPLATE.md): Template de répertoire pour les OPS durable dans le temps.
+- 💎 [`status_compose.sh`](./STATUS_COMPOSE.md): Affiche rapidement l’état des containers lancés via Docker Compose.
+- 💎 [`dir_template`](./DIR_TEMPLATE.md): Template de répertoire pour les OPS durable dans le temps.
 
 *D’autres gems à venir…*
 
