@@ -1,6 +1,6 @@
 # gemops 💎
 
-> *life is a bitch but devops_gem may help*
+> *life is a bitch but gemops may help*
 
 Scripts, templates, outils pour la vie quotidienne des devops:
 
