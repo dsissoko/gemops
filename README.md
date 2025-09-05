@@ -8,6 +8,7 @@ Scripts, templates, outils pour la vie quotidienne des devops:
 
 - 💎 [`status_compose.sh`](./STATUS_COMPOSE.md): Affiche rapidement l’état des containers lancés via Docker Compose.
 - 💎 [`dir_template`](./DIR_TEMPLATE.md): Template de répertoire pour les OPS durable dans le temps.
+- 💎 [`stack.sh`](./STACK.md): Appelle docker compose v2 start|stop|down et insère des hooks avant et apres: finis les scripts toutjours semblable mais différents.
 
 *D’autres gems à venir…*
 
