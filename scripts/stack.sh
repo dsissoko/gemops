@@ -173,14 +173,16 @@ if [[ -f "$STACK_ENV_FILE" ]]; then
 fi
 
 # --- Log exécutable ---
-echo "dir=${CALL_DIR} | env=${ENV_NAME} | compose=${COMPOSE_DESC}"
-echo -n "exec: docker compose"
-printf ' %q' "${GLOBAL_OPTS[@]}"
-echo -n " ${CMD}"
-if ((${#PASSTHRU[@]})); then
-  printf ' %q' "${PASSTHRU[@]}"
+if [[ "$CMD" != "restart" ]]; then
+  echo "dir=${CALL_DIR} | env=${ENV_NAME} | compose=${COMPOSE_DESC}"
+  echo -n "exec: docker compose"
+  printf ' %q' "${GLOBAL_OPTS[@]}"
+  echo -n " ${CMD}"
+  if ((${#PASSTHRU[@]})); then
+    printf ' %q' "${PASSTHRU[@]}"
+  fi
+  echo
 fi
-echo
 
 # Dry-run: affiche contexte, hooks "would run", commande effective; n'exécute rien
 if (( DRYRUN )); then
@@ -193,28 +195,50 @@ fi
 case "$CMD" in
   start)
     run_hooks pre  start
-    log "docker compose up -d ${PASSTHRU[*]}"
+    GO=""
+    log "docker compose ${GO}up -d ${PASSTHRU[*]}"
     docker compose "${GLOBAL_OPTS[@]}" up   -d "${PASSTHRU[@]}"
     run_hooks post start
     ;;
   stop)
     run_hooks pre  stop
-    log "docker compose stop ${PASSTHRU[*]}"
+    GO=""
+    log "docker compose ${GO}stop ${PASSTHRU[*]}"
     docker compose "${GLOBAL_OPTS[@]}" stop    "${PASSTHRU[@]}"
     run_hooks post stop
     ;;
   down)
     run_hooks pre  down
-    log "docker compose down ${PASSTHRU[*]}"
+    GO=""
+    log "docker compose ${GO}down ${PASSTHRU[*]}"
     docker compose "${GLOBAL_OPTS[@]}" down    "${PASSTHRU[@]}"
     run_hooks post down
     ;;
   restart)
-    run_hooks pre  restart
-    log "docker compose stop ${PASSTHRU[*]}"
-    docker compose "${GLOBAL_OPTS[@]}" stop    "${PASSTHRU[@]}"
-    log "docker compose up -d ${PASSTHRU[*]}"
-    docker compose "${GLOBAL_OPTS[@]}" up   -d "${PASSTHRU[@]}"
-    run_hooks post restart
+    # 👉 Pas d'auto-appel : on exécute "stop" puis "start" inline avec les mêmes GLOBAL_OPTS/PASSTHRU
+
+    if (( DRYRUN )); then
+      echo "would: stop ${PASSTHRU[*]}"
+      list_hooks pre  stop
+      list_hooks post stop
+      echo "would: start ${PASSTHRU[*]}"
+      list_hooks pre  start
+      list_hooks post start
+      exit 0
+    fi
+
+    # --- STOP ---
+    run_hooks pre  stop
+    GO=""; printf -v GO '%q ' "${GLOBAL_OPTS[@]}"
+    log "docker compose ${GO}stop ${PASSTHRU[*]}"
+    docker compose "${GLOBAL_OPTS[@]}" stop "${PASSTHRU[@]}"
+    run_hooks post stop
+
+    # --- START ---
+    run_hooks pre  start
+    GO=""; printf -v GO '%q ' "${GLOBAL_OPTS[@]}"
+    log "docker compose ${GO}up -d ${PASSTHRU[*]}"
+    docker compose "${GLOBAL_OPTS[@]}" up -d "${PASSTHRU[@]}"
+    run_hooks post start
     ;;
 esac
