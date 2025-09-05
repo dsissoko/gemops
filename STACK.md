@@ -1,7 +1,7 @@
 # stack
 
 [`stack.sh`](./scripts/stack.sh)  
-Fin wrapper **Docker Compose v2** pour piloter une stack avec un minimum d’ergonomie (env + hooks + passthrough).
+Fin wrapper **Docker Compose v2** pour piloter une stack avec un minimum d’ergonomie (env + hooks + passthrough + [`.env.stack`](./scripts/.env.stack) optionnel).
 
 ---
 
@@ -33,6 +33,8 @@ Comportement par défaut :
   - Ordre des hooks si présents :
       pre-all → pre-<cmd> → [commande docker] → post-all → post-<cmd>
 
+  - Rappel Docker Compose : si **au moins un** `-f` est utilisé, l’auto-chargemement (`docker-compose.yml` + `docker-compose.override.yml`) est désactivé. Il faut donc lister **explicitement** tous les fichiers nécessaires.
+
 Sous-commandes :
   start                Équivalent à “docker compose up -d …”
   stop                 “docker compose stop …”
@@ -44,6 +46,8 @@ Exemples :
   stack --env prod down -- --volumes --remove-orphans
   stack -d --env prod -p myproj -f docker-compose.prod.yml start -- --build
   stack --env prod --env-file .env.extra start        # doublons autorisés, Compose décide
+# Avec .env.stack (ex. COMPOSE_INCLUDE=docker-compose.yml,docker-compose.override.yml,docker-compose.override.inject.yml)
+stack --env dev start                               # charge la base + override + inject sans `-f` manuel
 ```
 
 **Prérequis :**

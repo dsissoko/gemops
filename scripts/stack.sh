@@ -10,21 +10,23 @@ usage() {
   cat >&2 <<'EOF'
 Usage: stack [--env ENV] [-d] [COMPOSE_GLOBALS…] {start|stop|down|restart} [args sous-commande…]
 
-Pilote une stack Docker Compose v2 avec un minimum d’ergonomie :
-  - --env ENV  ⇒ injecte --env-file .env.ENV
-  - Globales Compose en passthrough (ex: -p, -f, --profile, --env-file)
-  - Hooks: hooks.d/*-{pre|post}-{all|start|stop|down|restart}.sh
-  - -d (dry-run) : affiche hooks & commande, n’exécute rien
+But : Piloter Docker Compose v2 avec env + hooks + passthrough (+ .env.stack optionnel)
 
 Options :
-  --env ENV     Fichier .env.ENV (défaut: dev)
-  -d            Dry-run
+  --env ENV     Injecte --env-file .env.ENV (défaut: dev)
+  -d            Dry-run (affiche hooks + commande effective)
   -h, --help    Cette aide
 
 Comportement :
   - Sans -f/--file, exige docker-compose.yml ou compose.yaml dans le répertoire courant.
-  - --env n’empêche pas d’ajouter d’autres --env-file ; Docker tranche en cas de doublon.
-  - Ordre des hooks : pre-all → pre-<cmd> → [docker] → post-all → post-<cmd>.
+  - Les options Compose AVANT la sous-commande sont transmises telles quelles (-p, -f, --profile…).
+  - Hooks exécutés si présents : hooks.d/*-{pre|post}-{all|start|stop|down|restart}.sh
+  - .env.stack (optionnel) :
+      * COMPOSE_INCLUDE=f1.yml,f2.yml,…  → pré-préfixe ces fichiers avec -f
+      * Les -f passés par l’utilisateur arrivent après → ils ont la priorité
+      * Si vous utilisez COMPOSE_INCLUDE, listez aussi la base (ex: docker-compose.yml)
+  - Rappel Docker Compose : si vous utilisez au moins un -f, vous devez lister TOUS les fichiers voulus
+    (ex: docker-compose.yml, docker-compose.override.yml, puis vos overrides).
 
 Sous-commandes :
   start   = docker compose up -d …
@@ -32,21 +34,18 @@ Sous-commandes :
   down    = docker compose down …
   restart = stop puis up -d
 
-Exemples :
-  stack --env dev start -- --build api worker
-  stack --env prod down -- --volumes --remove-orphans
-  stack -d --env prod -p myproj -f docker-compose.prod.yml start -- --build
-
-Pré-requis :
-  - Fichier Compose présent (ou -f/--file)
-  - .env.ENV correspondant à --env
-
 Codes de sortie :
   0  succès (ou dry-run OK)
   2  erreur d’usage (cmd manquante, --env sans valeur)
-  3  compose introuvable (sans -f/--file)
-  4  .env.ENV introuvable
-  *  code du hook ou de docker compose si échec d’exécution
+  3  fichier compose introuvable / fichier listé dans .env.stack introuvable*
+  4  fichier .env.ENV manquant
+  *  code du hook ou de docker compose en cas d’échec
+
+Exemples :
+  stack --env dev start
+  stack --env prod -p myproj -f docker-compose.prod.yml start -- --build
+  # avec .env.stack (COMPOSE_INCLUDE=docker-compose.yml,docker-compose.override.yml,docker-compose.override.inject.yml)
+  stack --env dev start
 EOF
 }
 
@@ -139,6 +138,39 @@ run_hooks() { # $1=phase, $2=cmd
 
 # Injection --env-file (placée avant les globales utilisateur)
 GLOBAL_OPTS=( --env-file "$ENV_FILE" "${GLOBALS[@]}" )
+
+# --- .env.stack : pré-préfixe des -f via COMPOSE_INCLUDE (user garde la priorité) ---
+STACK_ENV_FILE=".env.stack"
+if [[ -f "$STACK_ENV_FILE" ]]; then
+  COMPOSE_INCLUDE=""
+  # Lire uniquement COMPOSE_INCLUDE (ignorer commentaires & lignes vides)
+  while IFS='=' read -r k v; do
+    [[ -z "${k// }" || "${k#\#}" != "$k" ]] && continue
+    [[ "$k" == "COMPOSE_INCLUDE" ]] && COMPOSE_INCLUDE="${v//[$'\r']/}"
+  done < "$STACK_ENV_FILE"
+
+  if [[ -n "${COMPOSE_INCLUDE// }" ]]; then
+    IFS=',' read -ra inc <<< "$COMPOSE_INCLUDE"
+
+    # Normalise, vérifie, et construit la liste à préfixer
+    PREPEND=()
+    for f in "${inc[@]}"; do
+      f="$(echo "$f" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+      [[ -z "$f" ]] && continue
+      if [[ -f "$f" ]]; then
+        PREPEND+=( -f "$f" )
+      else
+        warn "Fichier listé dans .env.stack introuvable: $f"   # remplacer par 'exit 3' si tu veux strict
+      fi
+    done
+
+    if [[ ${#PREPEND[@]} -gt 0 ]]; then
+      # Préfixage : les -f utilisateur (déjà dans GLOBALS) restent à la fin → priorité user
+      GLOBAL_OPTS=( --env-file "$ENV_FILE" "${PREPEND[@]}" "${GLOBALS[@]}" )
+      echo "compose-files(+stack, prepend): ${COMPOSE_INCLUDE}"
+    fi
+  fi
+fi
 
 # --- Log exécutable ---
 echo "dir=${CALL_DIR} | env=${ENV_NAME} | compose=${COMPOSE_DESC}"
