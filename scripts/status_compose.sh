@@ -4,7 +4,7 @@ set -euo pipefail
 # === 🧾 Aide ===
 show_help() {
   cat <<EOF
-Usage: status_compose [--list all|svc1,svc2,...] [--help]
+Usage: status_compose [--env-file /chemin/.env.*] [--list all|svc1,svc2,...] [--help]
 
 Ce script affiche :
   - Le statut des conteneurs actifs
@@ -13,6 +13,7 @@ Ce script affiche :
   - Les derniers logs
 
 Options :
+  --env-file PATH      Fichier d'environnement à passer à 'docker compose'
   --list all           Affiche les informations pour tous les conteneurs Docker
   --list svc1,svc2     Liste personnalisée de services à surveiller
   --help, -h           Affiche cette aide
@@ -28,6 +29,7 @@ EOF
 SHOW_ALL=false
 SERVICES=()
 ESSENTIAL_LOGS=()
+ENV_FILE=""
 
 # === 🎛️ Parsing des arguments ===
 while [[ $# -gt 0 ]]; do
@@ -50,6 +52,12 @@ while [[ $# -gt 0 ]]; do
       show_help
       exit 0
       ;;
+    --env-file)
+      ENV_FILE="${2:-}"
+      [[ -z "$ENV_FILE" ]] && { echo "❌ --env-file requiert un chemin"; exit 1; }
+      [[ ! -f "$ENV_FILE" ]] && { echo "❌ Fichier introuvable: $ENV_FILE"; exit 1; }
+      shift 2
+      ;;
     *)
       echo "❌ Option inconnue : $1"
       show_help
@@ -60,15 +68,26 @@ done
 
 # === 📦 Détection des services Docker Compose ===
 if [[ "${#SERVICES[@]}" -eq 0 && "$SHOW_ALL" == false ]]; then
-  if docker compose ps --format '{{.Name}}' &>/dev/null; then
-    mapfile -t DEFAULT_SERVICES < <(docker compose ps --format '{{.Name}}')
-    SERVICES=("${DEFAULT_SERVICES[@]}")
-    ESSENTIAL_LOGS=("${DEFAULT_SERVICES[@]}")
+  if [[ -n "${ENV_FILE}" ]]; then
+    if docker compose --env-file "${ENV_FILE}" ps --format '{{.Name}}' &>/dev/null; then
+      mapfile -t DEFAULT_SERVICES < <(docker compose --env-file "${ENV_FILE}" ps --format '{{.Name}}')
+    else
+      echo "❌ Aucun conteneur détecté via Docker Compose dans le répertoire courant (avec ${ENV_FILE})."
+      echo "ℹ️ Lance d'abord la stack, ou utilise --list pour cibler les conteneurs."
+      exit 1
+    fi
   else
-    echo "❌ Aucun conteneur détecté via Docker Compose dans le répertoire courant."
-    echo "ℹ️  Utilisez l'option --list pour cibler les conteneurs manuellement."
-    exit 1
+    if docker compose ps --format '{{.Name}}' &>/dev/null; then
+      mapfile -t DEFAULT_SERVICES < <(docker compose ps --format '{{.Name}}')
+    else
+      echo "❌ Aucun conteneur détecté via Docker Compose dans le répertoire courant."
+      echo "ℹ️ Utilise --env-file /chemin/.env.* ou --list."
+      exit 1
+    fi
   fi
+
+  SERVICES=("${DEFAULT_SERVICES[@]}")
+  ESSENTIAL_LOGS=("${DEFAULT_SERVICES[@]}")
 fi
 
 # === 1. Conteneurs actifs ===

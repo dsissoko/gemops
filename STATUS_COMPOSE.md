@@ -10,7 +10,7 @@ Consultez en une commande l’état de vos conteneurs Docker Compose (dans le r�
 
 ```shell
 r3edge@devbox:~/compose$ status_compose --help
-Usage: status_compose [--list all|svc1,svc2,...] [--help]
+Usage: status_compose [--env-file /chemin/.env.*] [--list all|svc1,svc2,...] [--help]
 
 Ce script affiche :
   - Le statut des conteneurs actifs
@@ -19,6 +19,7 @@ Ce script affiche :
   - Les derniers logs
 
 Options :
+  --env-file PATH      Fichier d'environnement à passer à 'docker compose'
   --list all           Affiche les informations pour tous les conteneurs Docker
   --list svc1,svc2     Liste personnalisée de services à surveiller
   --help, -h           Affiche cette aide
