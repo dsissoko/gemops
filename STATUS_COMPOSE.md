@@ -1,85 +1,105 @@
 # status_compose
 
 [`status_compose.sh`](./scripts/status_compose.sh)  
-Affiche rapidement l’état des containers lancés via Docker Compose.
+Affiche rapidement **l’état d’un projet Docker Compose** (containers, health, mémoire, logs) en filtrant par **label** `com.docker.compose.project`.
 
 ---
 
-**Usage :**  
-Consultez en une commande l’état de vos conteneurs Docker Compose (dans le répertoire courant), d’une liste précise, ou de tous les conteneurs actifs.
+## 🧭 Fonctionnement
 
-```shell
-r3edge@devbox:~/compose$ status_compose --help
-Usage: status_compose [--env-file /chemin/.env.*] [--list all|svc1,svc2,...] [--help]
+- **Paramètre unique (optionnel)** : `--project <nom>` ou `-p <nom>`  
+  → cible directement le projet Docker Compose voulu.
+- **Sans paramètre** : un **menu console** apparaît pour **sélectionner** le projet (navigation **aux flèches** avec `fzf`, sinon fallback `select` Bash).  
+- Zéro `.env` requis : la détection s’appuie sur les **labels runtime** déjà présents sur les conteneurs.
 
-Ce script affiche :
-  - Le statut des conteneurs actifs
-  - Leur état de santé (healthcheck)
-  - L'utilisation mémoire
-  - Les derniers logs
+---
 
-Options :
-  --env-file PATH      Fichier d'environnement à passer à 'docker compose'
-  --list all           Affiche les informations pour tous les conteneurs Docker
-  --list svc1,svc2     Liste personnalisée de services à surveiller
-  --help, -h           Affiche cette aide
+## ⚙️ Usage
 
-Comportement par défaut :
-  - Si un fichier docker-compose.yml est présent dans le répertoire courant
-    **et qu'une stack Compose y est active**, les services détectés sont utilisés automatiquement.
-  - Sinon, l'option --list est requise.
+```bash
+status_compose --help
 ```
 
-**Prérequis :**
-- [Docker](https://docs.docker.com/get-docker/) (avec le plugin `docker compose`)
-- Utilitaires système : `free` (`procps`) et `awk` (installés par défaut sur 99% des distributions Linux)
+```
+Usage: status_compose [--project <nom>] [--help]
 
-**Exemple de sortie :**
+- --project <nom>  : cible un projet Docker Compose précis
+- sans paramètre    : menu console pour sélectionner le projet
 
-```shell
-r3edge@devbox:~/compose$ status_compose
+Affiche pour le projet sélectionné :
+  1) Conteneurs actifs (table)
+  2) Healthcheck par conteneur
+  3) Mémoire conteneurs (docker stats)
+  4) Mémoire système (free -h)
+  5) Derniers logs (10 lignes)
+```
+
+### Exemples
+
+```bash
+# 1) Sélection interactive du projet (menu console)
+status_compose
+
+# 2) Cibler explicitement un projet
+status_compose --project traefik
+status_compose -p supabase
+```
+
+---
+
+## ✅ Prérequis
+
+- **Docker** (avec le plugin `docker compose`)
+- **Utilitaires système** : `free` (paquet `procps`) et `awk` (généralement déjà présents)
+- **Pour un menu “flèches” inline** : `fzf` recommandé (sinon, fallback `select` Bash)
+  - Installation : `sudo apt-get install -y fzf` (Debian/Ubuntu)
+
+> Astuce : `Esc` ou `Ctrl‑C` annule la sélection `fzf` proprement.
+
+---
+
+## 🖨️ Exemple de sortie (extrait)
+
+```text
+📦 Projet sélectionné : traefik
 
 📦 Conteneurs actifs :
-NAMES                            STATUS                 PORTS
-traefik                          Up 10 days (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
-certbot                          Up 10 days (healthy)   80/tcp, 443/tcp
-whoami                           Up 10 days             80/tcp
-config-server                    Up 4 weeks (healthy)   0.0.0.0:8889-8890->8889-8890/tcp, [::]:8889-8890->8889-8890/tcp
-github-webhook                   Up 4 weeks             0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
-redpanda-console                 Up 5 weeks             0.0.0.0:9090->8080/tcp, [::]:9090->8080/tcp
-redpanda-0                       Up 5 weeks (healthy)   8081-8082/tcp, 0.0.0.0:18081-18082->18081-18082/tcp, [::]:18081-18082->18081-18082/tcp, 9092/tcp, 0.0.0.0:19092->19092/tcp, [::]:19092->19092/tcp, 0.0.0.0:19644->9644/tcp, [::]:19644->9644/tcp
-supabase-auth                    Up 5 weeks (healthy)
-supabase-meta                    Up 5 weeks (healthy)   8080/tcp
-supabase-kong                    Up 5 weeks (healthy)   8000/tcp, 8443-8444/tcp, 10.0.0.1:8001->8001/tcp
-supabase-rest                    Up 5 weeks             3000/tcp
-supabase-studio                  Up 5 weeks (healthy)   3000/tcp
-realtime-dev.supabase-realtime   Up 5 weeks (healthy)
-supabase-analytics               Up 5 weeks (healthy)   0.0.0.0:4000->4000/tcp, [::]:4000->4000/tcp
-supabase-db                      Up 5 weeks (healthy)   0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
-supabase-vector                  Up 5 weeks (healthy)
+NAMES              STATUS                 PORTS
+traefik            Up 10 days (healthy)   0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 0.0.0.0:8080->8080/tcp
+certbot            Up 10 days (healthy)   80/tcp, 443/tcp
+whoami             Up 10 days             80/tcp
 
 🧪 Healthcheck :
-🔹 redpanda-0 → ✅ healthy
-🔹 redpanda-console → ❓ no healthcheck defined
+🔹 traefik → ✅ healthy
+🔹 certbot → ✅ healthy
+🔹 whoami → ❓ no healthcheck defined
 
 🧠 Mémoire conteneurs :
-NAME               MEM USAGE / LIMIT
-redpanda-0         264.8MiB / 3.729GiB
-redpanda-console   342.1MiB / 3.729GiB
+NAME      MEM USAGE / LIMIT
+traefik   90.2MiB / 15.4GiB
+certbot   34.1MiB / 15.4GiB
 
 🧠 Mémoire système :
                total        used        free      shared  buff/cache   available
-Mem:    Total=3.7Gi Used=2.6Gi Free=232Mi Available=1.1Gi
-Swap:   Total=1.0Gi Used=1.0Gi Free=0B
+Mem:    Total=15.4Gi Used=3.2Gi Free=10.1Gi Available=12.0Gi
+Swap:   Total=2.0Gi  Used=0B    Free=2.0Gi
 
 🧾 Derniers logs (10 lignes) :
 
-🔸 redpanda-0 :
-WARN  2025-08-03 17:30:01,650 [shard 0:main] cluster - feature_manager.cc:318 - A Redpanda Enterprise Edition license
-....
+🔸 traefik :
+...
 
-🔸 redpanda-console :
-{"level":"info","ts":"2025-08-01T18:32:14.876Z","msg":"successfully pulled git repository","repository_url":"https://github.com/redpanda-data/docs","read_files":1}
-{"level":"info","ts":"2025-08-01T18:33:14.881Z","msg":"successfully pulled git repository","repository_url":"https://github.com/redpanda-data/docs","read_files":1}
+🔸 certbot :
 ...
 ```
+
+---
+
+## 🧩 Notes d’implémentation
+
+- Le script filtre **uniquement** les conteneurs du projet choisi via  
+  `--filter label=com.docker.compose.project=<nom>`.
+- Si **aucun** projet n’est actif, le script l’indique et s’arrête.
+- Si **un seul** projet est détecté, il est sélectionné automatiquement.
+- Si `fzf` est absent ou si la sortie n’est pas un terminal interactif (TTY), le script
+  bascule sur un **menu `select` Bash**.
